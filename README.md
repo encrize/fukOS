@@ -1,12 +1,36 @@
 # fukOS
 
+![License](https://img.shields.io/github/license/encrize/fukOS)
+![Last commit](https://img.shields.io/github/last-commit/encrize/fukOS)
+![Architecture](https://img.shields.io/badge/arch-i686-blue)
+![Bootloader](https://img.shields.io/badge/boot-Limine%2FMultiboot2-lightgrey)
+
 fukOS is a hobby 32-bit i686 operating system written in freestanding C and assembly. It boots through Limine/Multiboot2, uses its own framebuffer console, storage, keyboard, audio, FAT layer, shell, text editor, and a Doom Generic port.
 
-The main hardware target is **Acer Aspire ES1-533** with Intel Pentium N4200 / Apollo Lake and a 1366×768 display. QEMU is useful for quick boot checks, but real Acer behavior is the priority.
+The main hardware target is **Acer Aspire ES1-533** with Intel Pentium N4200 / Apollo Lake and a 1366×768 display.
 
-<img width="1366" height="768" alt="shot4" src="https://github.com/user-attachments/assets/b9896c2b-f4c4-42cf-995b-aa1e6e3b08c6" />
-<img width="1366" height="768" alt="shot3" src="https://github.com/user-attachments/assets/2dabb7e8-47d3-4e69-a4f6-37bbb8ced766" />
-<img width="1366" height="768" alt="shot2" src="https://github.com/user-attachments/assets/57ca773f-eabe-4a76-89a8-5b784ad6094a" />
+## Contents
+
+- [Screenshots](#screenshots)
+- [Current feature set](#current-feature-set)
+- [Building on Arch Linux](#building-on-arch-linux)
+- [Typical hardware test flow](#typical-hardware-test-flow)
+- [Shell controls](#shell-controls)
+- [Some shell commands](#some-shell-commands)
+- [Text editor](#text-editor)
+- [Memory and heap](#memory-and-heap)
+- [DOOM integration](#doom-integration)
+- [Repository layout](#repository-layout)
+- [Current limitations](#current-limitations)
+- [Development roadmap](#development-roadmap)
+- [Third-party material](#third-party-material)
+
+## Screenshots
+
+| Shell | Clock app | Fastfetch |
+|---|---|---|
+| ![shell](https://github.com/user-attachments/assets/b9896c2b-f4c4-42cf-995b-aa1e6e3b08c6) | ![clock](https://github.com/user-attachments/assets/2dabb7e8-47d3-4e69-a4f6-37bbb8ced766) | ![fastfetch](https://github.com/user-attachments/assets/57ca773f-eabe-4a76-89a8-5b784ad6094a) |
+| `ls`/`tree` output on real Acer hardware | Full-screen flip clock | Live system status card (`ff`) |
 
 ## Current feature set
 
@@ -110,16 +134,14 @@ Recommended DOOM save test:
 | Page Up / Page Down | Scroll shell output one page |
 | Tab | Complete command, file, or directory name |
 
-## Important shell commands
+## Some shell commands
 
 ```text
 ff                 live system card with RAM/heap/disk/audio bars
 heaptest           test kernel heap alloc/free/calloc/realloc behavior
 irqinfo            show PIT interrupt ticks and COM1 status
 panic-test confirm deliberately trigger a breakpoint panic and register dump
-clock              full-screen flip clock; Q/Esc/Enter exits
 open <file>        open by type: text->edit, BMP->photo, WAV->play
-matrix             green digital-rain screensaver
 bgplay <file.wav>  start background WAV playback
 bgplay *.wav       queue all WAV files in current directory
 doom               start DOOM
@@ -192,19 +214,34 @@ limine.conf    Limine boot configuration
 - RTC time has no configured timezone, NTP synchronization, or century-register handling.
 - The kernel has no automated bare-metal regression suite; real-hardware checks remain manual.
 
-## Development ideas
+## Development roadmap
 
-1. Add paging with guard pages, a higher-half kernel, and a safer physical-page allocator.
-2. Introduce a preemptive scheduler, ring-3 processes, syscalls, and an ELF loader.
-3. Move PS/2, xHCI, and HDA toward IRQ-driven operation with synchronization primitives.
-4. Add a VFS layer, read-only ISO9660/ext2 support, and transactional FAT write recovery.
-5. Implement USB HID keyboards/mice without relying on firmware legacy emulation.
-6. Add an RTL8139 or Intel e1000 driver, IPv4, DHCP, DNS, ICMP, and a small TCP stack.
+### Near-term - architecture debt
+1. Move PS/2, xHCI, and HDA toward IRQ-driven operation with synchronization primitives.
+2. Create QEMU smoke tests for boot, heap, FAT, exceptions, screenshots, and repeated DOOM launches.
+
+### Mid-term - isolation and safety
+3. Add paging with guard pages, a higher-half kernel, and a safer physical-page allocator.
+4. Introduce a preemptive scheduler, ring-3 processes, syscalls, and an ELF loader.
+5. Add a VFS layer, read-only ISO9660/ext2 support, and transactional FAT write recovery.
+6. Implement USB HID keyboards/mice without relying on firmware legacy emulation.
+
+### Long-term - userspace and beyond
 7. Build a userspace terminal, file manager, system monitor, and settings application.
 8. Add PNG/JPEG decoding, scalable fonts, mouse input, and window compositing.
-9. Add ACPI table parsing for power, battery, thermal state, and reliable reboot/shutdown.
-10. Create QEMU smoke tests for boot, heap, FAT, exceptions, screenshots, and repeated DOOM launches.
+9. Add an RTL8139 or Intel e1000 driver, IPv4, DHCP, DNS, ICMP, and a small TCP stack.
+10. Add ACPI table parsing for power, battery, thermal state, and reliable reboot/shutdown.
 
 ## Third-party material
 
-> **Notice:** This operating system includes the shareware data file (`doom1.wad`) for demonstration purposes only. DOOM Shareware data is copyrighted by id Software / ZeniMax Media / Microsoft. This is a non-commercial, non-profit educational project. No copyright infringement intended. If you are the copyright holder and wish this file to be removed, please contact me: admin@encrize.vip
+This repository includes the shareware data file `doom1.wad` for demonstration purposes only.
+
+DOOM Shareware data is copyrighted by id Software / ZeniMax Media /
+Microsoft. It is not covered by this project's GPL-2.0 license and
+remains the property of its respective copyright holders.
+
+This is a non-commercial, non-profit educational project. No copyright
+infringement is intended.
+
+If you are the copyright holder and wish this file to be removed from
+the repository, please contact: admin@encrize.vip
