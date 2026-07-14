@@ -1,0 +1,9 @@
+/build/
+/kernel.bin
+/os-limine.img
+/assets.img
+
+*.o
+*.log
+*.pyc
+__pycache__/

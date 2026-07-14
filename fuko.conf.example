@@ -1,0 +1,13 @@
+# Copy this file to the FAT root as fuko.conf.
+
+# Startup splash shown after the FAT volume is mounted.
+BOOT_IMAGE = boot.bmp
+BOOT_IMAGE_SECONDS = 3
+BOOT_IMAGE_MODE = fit
+
+# Optional terminal wallpaper and appearance.
+# WALLPAPER = photos/wallpaper.bmp
+TERMINAL_TRANSPARENCY = 55
+
+# auto, speaker, or headphones
+AUDIO_OUTPUT = auto
