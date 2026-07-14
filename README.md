@@ -4,6 +4,10 @@ fukOS is a hobby 32-bit i686 operating system written in freestanding C and asse
 
 The main hardware target is **Acer Aspire ES1-533** with Intel Pentium N4200 / Apollo Lake and a 1366×768 display. QEMU is useful for quick boot checks, but real Acer behavior is the priority.
 
+<img width="1366" height="768" alt="shot4" src="https://github.com/user-attachments/assets/b9896c2b-f4c4-42cf-995b-aa1e6e3b08c6" />
+<img width="1366" height="768" alt="shot3" src="https://github.com/user-attachments/assets/2dabb7e8-47d3-4e69-a4f6-37bbb8ced766" />
+<img width="1366" height="768" alt="shot2" src="https://github.com/user-attachments/assets/57ca773f-eabe-4a76-89a8-5b784ad6094a" />
+
 ## Current feature set
 
 - Limine Multiboot2 boot path.
