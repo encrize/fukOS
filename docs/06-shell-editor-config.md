@@ -52,12 +52,15 @@ lspci
 usb / xhci
 diskinfo
 time / date
+start <app>
 about
 reboot
 poweroff / shutdown / off
 ```
 
 `ff` shows CPU, display, storage, memory, and heap information. `heaptest` exercises the kernel heap and reports success/failure.
+
+`start <app>` loads `/apps/<app>.fuk` from the mounted FAT volume at runtime. The application is not linked into the kernel. See [`12-external-fuk-apps.md`](12-external-fuk-apps.md) for the loader architecture and FUK1 programming guide.
 
 ## Audio commands
 

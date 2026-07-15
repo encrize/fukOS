@@ -59,6 +59,8 @@ typedef struct {
 
 /* Sequential reads for files too large for the shared file buffer. */
 int      fat_open(const char *name, fat_file *file);
+/* Open a file by relative or absolute path without changing the shell CWD. */
+int      fat_open_path(const char *path, fat_file *file);
 int      fat_seek(fat_file *file, uint32_t offset);
 uint32_t fat_read(fat_file *file, uint8_t *buf, uint32_t size);
 

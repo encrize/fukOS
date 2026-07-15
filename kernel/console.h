@@ -9,6 +9,11 @@ void console_clear(void);
 void console_putc(char c);
 void console_puts(const char *s);
 void console_set_colors(uint32_t fg, uint32_t bg);
+void console_set_foreground(uint32_t fg);
+/* Position the next text output at zero-based column/row coordinates. */
+int  console_set_cursor(int column, int row);
+int  console_columns(void);
+int  console_rows(void);
 
 /* Wallpaper and terminal background. */
 int console_set_wallpaper(const uint8_t *pixels, uint32_t width, uint32_t height);

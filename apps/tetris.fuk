@@ -1,0 +1,489 @@
+FUK1
+# tetris.fuk - terminal Tetris for the FUK1 VM
+# Controls: Left/Right move, Down drops, Up rotates, Q/Esc exits.
+
+clear
+set ax 0
+set ay 0
+set bx 0
+set by 0
+set cx 0
+set cy 0
+set dx 0
+set dy 0
+set nax 0
+set nay 0
+set nbx 0
+set nby 0
+set ncx 0
+set ncy 0
+set ndx 0
+set ndy 0
+set key 0
+set tick 0
+set idx 0
+set cell 0
+set row 0
+set col 0
+set temp 0
+set count 0
+set piece 0
+set score 0
+set lines 0
+set src 0
+set dst 0
+set screenx 0
+set screeny 0
+
+# Draw the permanent border.
+color 14
+cursor 4 1
+print +----------+
+cursor 4 22
+print +----------+
+set row 2
+label border_loop
+if_gt row 21 spawn
+cursor 4 row
+print |
+cursor 15 row
+print |
+add row row 1
+goto border_loop
+
+# Pick and create one of seven tetrominoes.
+label spawn
+rand piece 0 6
+set tick 0
+if_eq piece 0 spawn_i
+if_eq piece 1 spawn_o
+if_eq piece 2 spawn_t
+if_eq piece 3 spawn_s
+if_eq piece 4 spawn_z
+if_eq piece 5 spawn_j
+goto spawn_l
+
+label spawn_i
+set ax 4
+set ay 1
+set bx 3
+set by 1
+set cx 5
+set cy 1
+set dx 6
+set dy 1
+goto spawn_check
+
+label spawn_o
+set ax 4
+set ay 0
+set bx 5
+set by 0
+set cx 4
+set cy 1
+set dx 5
+set dy 1
+goto spawn_check
+
+label spawn_t
+set ax 4
+set ay 1
+set bx 3
+set by 1
+set cx 5
+set cy 1
+set dx 4
+set dy 0
+goto spawn_check
+
+label spawn_s
+set ax 4
+set ay 1
+set bx 3
+set by 1
+set cx 4
+set cy 0
+set dx 5
+set dy 0
+goto spawn_check
+
+label spawn_z
+set ax 4
+set ay 1
+set bx 5
+set by 1
+set cx 4
+set cy 0
+set dx 3
+set dy 0
+goto spawn_check
+
+label spawn_j
+set ax 4
+set ay 1
+set bx 3
+set by 1
+set cx 5
+set cy 1
+set dx 3
+set dy 0
+goto spawn_check
+
+label spawn_l
+set ax 4
+set ay 1
+set bx 3
+set by 1
+set cx 5
+set cy 1
+set dx 5
+set dy 0
+
+# Game over if any spawn cell is already occupied.
+label spawn_check
+mul idx ay 10
+add idx idx ax
+array_get cell idx
+if_ne cell 0 game_over
+mul idx by 10
+add idx idx bx
+array_get cell idx
+if_ne cell 0 game_over
+mul idx cy 10
+add idx idx cx
+array_get cell idx
+if_ne cell 0 game_over
+mul idx dy 10
+add idx idx dx
+array_get cell idx
+if_ne cell 0 game_over
+goto render
+
+# Redraw locked cells. Active cells are drawn afterwards.
+label render
+set row 0
+label render_rows
+if_ge row 20 render_piece
+set col 0
+label render_cols
+if_ge col 10 render_next_row
+mul idx row 10
+add idx idx col
+array_get cell idx
+add screenx col 5
+add screeny row 2
+cursor screenx screeny
+if_eq cell 0 render_empty
+color 7
+print #
+goto render_cell_done
+label render_empty
+print \s
+label render_cell_done
+add col col 1
+goto render_cols
+label render_next_row
+add row row 1
+goto render_rows
+
+label render_piece
+add temp piece 9
+color temp
+add screenx ax 5
+add screeny ay 2
+cursor screenx screeny
+print @
+add screenx bx 5
+add screeny by 2
+cursor screenx screeny
+print @
+add screenx cx 5
+add screeny cy 2
+cursor screenx screeny
+print @
+add screenx dx 5
+add screeny dy 2
+cursor screenx screeny
+print @
+color 15
+cursor 18 2
+print SCORE:
+cursor 25 2
+printv score
+print \s\s\s\s\s
+cursor 18 4
+print LINES:
+cursor 25 4
+printv lines
+print \s\s\s\s\s
+cursor 18 7
+print Arrows: move/rotate
+cursor 18 8
+print Q/Esc: quit
+
+sleep 80
+key_poll key
+if_eq key 113 quit
+if_eq key 81 quit
+if_eq key 27 quit
+if_eq key 130 move_left
+if_eq key 131 move_right
+if_eq key 129 move_down
+if_eq key 128 rotate
+add tick tick 1
+if_ge tick 6 gravity
+goto render
+
+# Try moving one cell left.
+label move_left
+sub nax ax 1
+sub nbx bx 1
+sub ncx cx 1
+sub ndx dx 1
+mov nay ay
+mov nby by
+mov ncy cy
+mov ndy dy
+if_lt nax 0 render
+if_lt nbx 0 render
+if_lt ncx 0 render
+if_lt ndx 0 render
+goto check_side
+
+# Try moving one cell right.
+label move_right
+add nax ax 1
+add nbx bx 1
+add ncx cx 1
+add ndx dx 1
+mov nay ay
+mov nby by
+mov ncy cy
+mov ndy dy
+if_gt nax 9 render
+if_gt nbx 9 render
+if_gt ncx 9 render
+if_gt ndx 9 render
+goto check_side
+
+# Shared collision check for horizontal movement.
+label check_side
+mul idx nay 10
+add idx idx nax
+array_get cell idx
+if_ne cell 0 render
+mul idx nby 10
+add idx idx nbx
+array_get cell idx
+if_ne cell 0 render
+mul idx ncy 10
+add idx idx ncx
+array_get cell idx
+if_ne cell 0 render
+mul idx ndy 10
+add idx idx ndx
+array_get cell idx
+if_ne cell 0 render
+goto accept_move
+
+# Soft drop and automatic gravity share the same collision path.
+label move_down
+set tick 0
+goto make_down
+label gravity
+set tick 0
+label make_down
+mov nax ax
+mov nbx bx
+mov ncx cx
+mov ndx dx
+add nay ay 1
+add nby by 1
+add ncy cy 1
+add ndy dy 1
+if_gt nay 19 lock
+if_gt nby 19 lock
+if_gt ncy 19 lock
+if_gt ndy 19 lock
+mul idx nay 10
+add idx idx nax
+array_get cell idx
+if_ne cell 0 lock
+mul idx nby 10
+add idx idx nbx
+array_get cell idx
+if_ne cell 0 lock
+mul idx ncy 10
+add idx idx ncx
+array_get cell idx
+if_ne cell 0 lock
+mul idx ndy 10
+add idx idx ndx
+array_get cell idx
+if_ne cell 0 lock
+goto accept_move
+
+# Rotate 90 degrees clockwise around block A. O does not rotate.
+label rotate
+if_eq piece 1 render
+mov nax ax
+mov nay ay
+sub temp by ay
+sub nbx ax temp
+sub temp bx ax
+add nby ay temp
+sub temp cy ay
+sub ncx ax temp
+sub temp cx ax
+add ncy ay temp
+sub temp dy ay
+sub ndx ax temp
+sub temp dx ax
+add ndy ay temp
+if_lt nax 0 render
+if_lt nbx 0 render
+if_lt ncx 0 render
+if_lt ndx 0 render
+if_gt nax 9 render
+if_gt nbx 9 render
+if_gt ncx 9 render
+if_gt ndx 9 render
+if_lt nay 0 render
+if_lt nby 0 render
+if_lt ncy 0 render
+if_lt ndy 0 render
+if_gt nay 19 render
+if_gt nby 19 render
+if_gt ncy 19 render
+if_gt ndy 19 render
+mul idx nay 10
+add idx idx nax
+array_get cell idx
+if_ne cell 0 render
+mul idx nby 10
+add idx idx nbx
+array_get cell idx
+if_ne cell 0 render
+mul idx ncy 10
+add idx idx ncx
+array_get cell idx
+if_ne cell 0 render
+mul idx ndy 10
+add idx idx ndx
+array_get cell idx
+if_ne cell 0 render
+goto accept_move
+
+label accept_move
+mov ax nax
+mov ay nay
+mov bx nbx
+mov by nby
+mov cx ncx
+mov cy ncy
+mov dx ndx
+mov dy ndy
+goto render
+
+# Store the active tetromino in the 10x20 array.
+label lock
+mul idx ay 10
+add idx idx ax
+array_set idx 1
+mul idx by 10
+add idx idx bx
+array_set idx 1
+mul idx cy 10
+add idx idx cx
+array_set idx 1
+mul idx dy 10
+add idx idx dx
+array_set idx 1
+add score score 10
+set row 19
+
+# Find complete rows from bottom to top.
+label scan_row
+if_lt row 0 spawn
+set col 0
+set count 0
+label scan_col
+if_ge col 10 scan_done
+mul idx row 10
+add idx idx col
+array_get cell idx
+if_eq cell 0 scan_next_col
+add count count 1
+label scan_next_col
+add col col 1
+goto scan_col
+label scan_done
+if_eq count 10 remove_row
+sub row row 1
+goto scan_row
+
+# Shift every row above a completed row down by one.
+label remove_row
+mov dst row
+sub src row 1
+label shift_row
+if_lt src 0 clear_top
+set col 0
+label shift_col
+if_ge col 10 shift_next
+mul idx src 10
+add idx idx col
+array_get cell idx
+mul temp dst 10
+add temp temp col
+array_set temp cell
+add col col 1
+goto shift_col
+label shift_next
+sub src src 1
+sub dst dst 1
+goto shift_row
+
+label clear_top
+set col 0
+label clear_top_col
+if_ge col 10 row_removed
+array_set col 0
+add col col 1
+goto clear_top_col
+label row_removed
+add lines lines 1
+add score score 100
+# Recheck the same row because another full row may have shifted into it.
+goto scan_row
+
+label game_over
+color 9
+cursor 18 12
+print GAME OVER
+cursor 18 14
+print Score:
+printv score
+cursor 18 15
+print Lines:
+printv lines
+cursor 18 17
+inputc key Press Enter:
+goto finish
+
+label quit
+color 11
+cursor 18 12
+println Leaving Tetris...
+
+label finish
+clear
+color 15
+println tetris.fuk finished.
+print Final score:
+printv score
+println
+print Lines:
+printv lines
+println
+exit

@@ -16,7 +16,8 @@ OBJS := build/boot.o build/kernel.o build/multiboot2.o \
         build/fat.o build/util.o build/console.o build/keyboard.o \
         build/shell.o build/demo_image.o build/font.o build/pci.o \
         build/xhci.o build/rtc.o build/hda.o build/heap.o \
-        build/serial.o build/interrupts.o build/interrupt_stubs.o build/panic.o
+        build/serial.o build/interrupts.o build/interrupt_stubs.o build/panic.o \
+        build/app.o
 
 GCC_INC := $(shell $(CC) $(CFLAGS) -print-file-name=include)
 LIBGCC  := $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)

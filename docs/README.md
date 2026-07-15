@@ -19,6 +19,8 @@ The primary validation platform is Acer Aspire ES1-533 with Intel Pentium N4200.
 | [`09-build-and-run.md`](09-build-and-run.md) | Toolchain, build targets, deployment, testing |
 | [`10-interrupts-panic-serial.md`](10-interrupts-panic-serial.md) | IDT/PIC/PIT interrupts, panic register dump, COM1 logging |
 | [`11-usb-layout.md`](11-usb-layout.md) | USB image layout, installation, and black-screen diagnosis |
+| [`12-external-fuk-apps.md`](12-external-fuk-apps.md) | Runtime app loading from USB and the complete FUK1 language guide |
+| [`13-fuk-programming-tutorial.md`](13-fuk-programming-tutorial.md) | Step-by-step FUK1 programming tutorial with game and Tetris examples |
 
 ## Design principles
 

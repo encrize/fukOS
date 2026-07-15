@@ -16,6 +16,7 @@
 #include "interrupts.h"
 #include "panic.h"
 #include "serial.h"
+#include "app.h"
 
 void doom_run(const fb_info *fb, uint64_t total_ram_bytes);
 
@@ -73,7 +74,7 @@ static const char *const SHELL_COMMANDS[] = {
     "bgprev", "audioout", "img", "photo", "screenshot", "res", "about",
     "reboot", "poweroff", "lspci", "usb", "diskinfo", "time", "touch",
     "mkdir", "rmdir", "rm", "cp", "mv", "echo", "edit", "fastfetch", "open", "matrix", "doom",
-    "irqinfo", "panic-test", "clock"
+    "irqinfo", "panic-test", "clock", "start"
 };
 #define SHELL_COMMAND_COUNT ((int)(sizeof SHELL_COMMANDS / sizeof SHELL_COMMANDS[0]))
 
@@ -405,6 +406,7 @@ static void cmd_help(void) {
     console_puts("  diskinfo          show mounted FAT geometry + storage backend (debug)\n");
     console_puts("  time / date       show the current date & time (CMOS RTC)\n");
     console_puts("  clock             full-screen flip clock (Q/Esc/Enter exits)\n");
+    console_puts("  start <app>       run /apps/<app>.fuk (external FUK1 app)\n");
     console_puts("  touch <file>      create a new empty file\n");
     console_puts("  mkdir <name>      create a new folder\n");
     console_puts("  rmdir <folder>    delete an empty folder\n");
@@ -3400,6 +3402,7 @@ void shell_run(const fb_info *fb, uint64_t total_ram_bytes, const uint8_t *acpi_
         else if (streq(cmd, "diskinfo"))                   cmd_diskinfo();
         else if (streq(cmd, "time") || streq(cmd, "date")) cmd_time();
         else if (streq(cmd, "clock"))                       cmd_clock();
+        else if (streq(cmd, "start"))                       app_start(arg);
         else if (streq(cmd, "touch"))                      cmd_touch(arg);
         else if (streq(cmd, "mkdir") || streq(cmd, "md"))  cmd_mkdir(arg);
         else if (streq(cmd, "rmdir") || streq(cmd, "rd"))  cmd_rmdir(arg);

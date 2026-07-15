@@ -1,0 +1,34 @@
+FUK1
+# External calculator example for fukOS.
+println === calc.fuk ===
+input a First integer:
+inputc op Operation (+ - * / %):
+input b Second integer:
+if_eq op 43 do_add
+if_eq op 45 do_sub
+if_eq op 42 do_mul
+if_eq op 47 do_div
+if_eq op 37 do_mod
+println Unknown operation.
+exit
+
+label do_add
+add result a b
+goto show
+label do_sub
+sub result a b
+goto show
+label do_mul
+mul result a b
+goto show
+label do_div
+div result a b
+goto show
+label do_mod
+mod result a b
+
+label show
+print Result:
+printv result
+println
+exit

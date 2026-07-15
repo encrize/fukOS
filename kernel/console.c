@@ -258,6 +258,20 @@ void console_set_colors(uint32_t f, uint32_t b) {
     if (bg != b) { bg = b; rebuild_terminal_background(); }
 }
 
+void console_set_foreground(uint32_t f) { fg = f; }
+
+int console_set_cursor(int column, int at_row) {
+    if (column < 0 || column >= cols || at_row < 0 || at_row >= rows) return 0;
+    console_scrollback_live();
+    input_active = 0;
+    col = column;
+    row = at_row;
+    return 1;
+}
+
+int console_columns(void) { return cols; }
+int console_rows(void) { return rows; }
+
 void console_set_transparency(uint32_t percent) {
     if (percent > 100u) percent = 100u;
     terminal_transparency = percent;

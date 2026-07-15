@@ -33,6 +33,14 @@ def build_image(args):
         if os.path.isfile(path):
             fs.add_file(name, read_file(path))
 
+    apps_dir = os.path.join(ROOT, "apps")
+    if os.path.isdir(apps_dir):
+        fs.add_dir("apps")
+        for name in sorted(os.listdir(apps_dir)):
+            source = os.path.join(apps_dir, name)
+            if os.path.isfile(source) and name.lower().endswith(".fuk"):
+                fs.add_file("apps/" + name, read_file(source))
+
     partition = fs.serialize()
     expected_size = PART_SECTORS * SECTOR
     if len(partition) != expected_size:

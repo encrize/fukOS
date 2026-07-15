@@ -223,6 +223,10 @@ char kbd_poll(void) {
     return decode_event();
 }
 
+uint64_t kbd_tsc_per_ms(void) {
+    return g_tsc_khz ? g_tsc_khz : 1100000ULL;
+}
+
 char kbd_getchar(void) {
     for (;;) {
         char c = decode_event();

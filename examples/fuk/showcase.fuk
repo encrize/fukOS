@@ -1,0 +1,500 @@
+FUK1
+
+# ==================================================
+# Cyber Mission Center
+# FUK1 language showcase
+# ==================================================
+
+clear
+screen_cols screen_width
+screen_rows screen_height
+
+div title_x screen_width 2
+sub title_x title_x 14
+clamp title_x title_x 0 100
+
+cursor title_x 1
+color 11
+println === CYBER MISSION CENTER ===
+color 15
+println
+println Create your cyber agent profile.
+println
+
+# --------------------------------------------------
+# Player name and string operations
+# --------------------------------------------------
+
+inputs name Enter your agent name:
+strlen name_length name
+
+if_eq name_length 0 empty_name name_ok
+
+label empty_name
+color 12
+println Name cannot be empty.
+exit
+
+label name_ok
+str greeting "Welcome, "
+strcat greeting greeting name
+
+color 10
+printsn greeting
+color 15
+
+print Your name contains\s
+printv name_length
+println \scharacters.
+
+# --------------------------------------------------
+# Choose a class using string comparisons
+# --------------------------------------------------
+
+println
+println Available classes:
+color 11
+println - hacker
+color 10
+println - scout
+color 12
+println - tank
+color 15
+println
+
+inputs class_input Choose your class:
+
+if_seq class_input hacker choose_hacker check_scout
+
+label check_scout
+if_seq class_input scout choose_scout check_tank
+
+label check_tank
+if_seq class_input tank choose_tank unknown_class
+
+label unknown_class
+color 12
+println Unknown class!
+println Use hacker, scout, or tank.
+exit
+
+label choose_hacker
+str agent_class Hacker
+set power 7
+set defense 4
+set speed 8
+float class_multiplier 1.35
+goto class_ready
+
+label choose_scout
+str agent_class Scout
+set power 5
+set defense 5
+set speed 10
+float class_multiplier 1.20
+goto class_ready
+
+label choose_tank
+str agent_class Tank
+set power 9
+set defense 10
+set speed 3
+float class_multiplier 1.10
+goto class_ready
+
+# --------------------------------------------------
+# Numeric and float input
+# --------------------------------------------------
+
+label class_ready
+println
+input age Enter your age:
+
+if_lt age 1 invalid_age check_max_age
+
+label check_max_age
+if_gt age 120 invalid_age age_valid
+
+label invalid_age
+color 12
+println Invalid age.
+exit
+
+label age_valid
+inputf skill Enter skill level from 0.0 to 10.0:
+
+if_flt skill 0.0 invalid_skill check_max_skill
+
+label check_max_skill
+if_fgt skill 10.0 invalid_skill skill_valid
+
+label invalid_skill
+color 12
+println Skill must be between 0.0 and 10.0.
+exit
+
+# --------------------------------------------------
+# Calculate the agent rating
+# --------------------------------------------------
+
+label skill_valid
+itof power_float power
+itof speed_float speed
+itof defense_float defense
+
+fmul weighted_power power_float class_multiplier
+fadd rating weighted_power skill
+fadd rating rating speed_float
+fadd rating rating defense_float
+fdiv rating rating 3.0
+
+# Compare a calculated float with tolerance.
+cmp_fnear perfect_rating rating 10.0 0.25
+
+# Integer comparisons stored as Boolean values.
+cmp_ge adult age 18
+cmp_ge fast_agent speed 8
+
+# A small bitwise-generated badge number.
+bit_xor badge power speed
+bit_xor badge badge defense
+bit_and badge badge 255
+
+# --------------------------------------------------
+# Store profile data in the VM array
+# --------------------------------------------------
+
+array_set 0 power
+array_set 1 defense
+array_set 2 speed
+array_set 3 age
+array_set 4 badge
+
+set wins 0
+set losses 0
+set credits 100
+set health 100
+
+array_set 5 wins
+array_set 6 losses
+array_set 7 credits
+array_set 8 health
+
+time_ms session_start
+
+call show_profile
+
+# --------------------------------------------------
+# Special messages
+# --------------------------------------------------
+
+if_true perfect_rating perfect_message adult_check
+
+label perfect_message
+color 14
+println Your rating is very close to 10.0!
+color 15
+goto adult_check
+
+label adult_check
+if_true adult adult_message young_message
+
+label adult_message
+color 10
+println Adult agent verification: passed.
+color 15
+goto speed_check
+
+label young_message
+color 11
+println Junior agent mode enabled.
+color 15
+
+label speed_check
+if_true fast_agent speed_message mission_question
+
+label speed_message
+color 11
+println High-speed agent bonus activated!
+add credits credits 25
+array_set 7 credits
+color 15
+
+# --------------------------------------------------
+# Mission loop
+# --------------------------------------------------
+
+label mission_question
+println
+inputs answer Start a random mission? (yes/no):
+if_seq answer yes mission_start goodbye
+
+label mission_start
+color 13
+println
+println Searching for a mission...
+color 15
+
+print Loading
+sleep 250
+print .
+sleep 250
+print .
+sleep 250
+println .
+
+rand mission_id 1 3
+
+if_eq mission_id 1 mission_database check_network_mission
+
+label check_network_mission
+if_eq mission_id 2 mission_network mission_reactor
+
+label mission_database
+str mission_name "Encrypted Database"
+set difficulty 5
+goto mission_ready
+
+label mission_network
+str mission_name "Dark Network"
+set difficulty 7
+goto mission_ready
+
+label mission_reactor
+str mission_name "Reactor Defense"
+set difficulty 9
+goto mission_ready
+
+label mission_ready
+println
+color 11
+print Mission:\s
+printsn mission_name
+color 15
+
+print Base difficulty:\s
+printv difficulty
+println
+
+# Class stats modify mission difficulty.
+sub challenge difficulty power
+add challenge challenge 6
+clamp challenge challenge 1 10
+
+print Final challenge:\s
+printv challenge
+println
+
+rand roll 1 10
+
+print Your roll:\s
+printv roll
+println
+
+if_ge roll challenge mission_success mission_failed
+
+# --------------------------------------------------
+# Successful mission
+# --------------------------------------------------
+
+label mission_success
+color 10
+println
+println MISSION SUCCESS!
+color 15
+
+inc wins
+rand reward 20 80
+add credits credits reward
+
+array_set 5 wins
+array_set 7 credits
+
+print Reward:\s
+printv reward
+println \scredits.
+
+print Total credits:\s
+printv credits
+println
+
+goto after_mission
+
+# --------------------------------------------------
+# Failed mission
+# --------------------------------------------------
+
+label mission_failed
+color 12
+println
+println MISSION FAILED!
+color 15
+
+inc losses
+rand damage 10 35
+sub health health damage
+clamp health health 0 100
+
+array_set 6 losses
+array_set 8 health
+
+print Damage received:\s
+printv damage
+println
+
+print Health remaining:\s
+printv health
+println
+
+if_gt health 0 after_mission agent_destroyed
+
+label agent_destroyed
+color 12
+println
+println Your agent has been disabled.
+println No more missions can be started.
+color 15
+goto goodbye
+
+# --------------------------------------------------
+# Continue playing
+# --------------------------------------------------
+
+label after_mission
+println
+call show_short_stats
+
+inputs continue_answer Start another mission? (yes/no):
+if_seq continue_answer yes mission_start goodbye
+
+# --------------------------------------------------
+# Exit screen
+# --------------------------------------------------
+
+label goodbye
+time_ms session_end
+sub session_time session_end session_start
+
+clear
+color 11
+println === SESSION COMPLETE ===
+color 15
+println
+
+print Agent:\s
+printsn name
+
+print Class:\s
+printsn agent_class
+
+print Wins:\s
+printv wins
+println
+
+print Losses:\s
+printv losses
+println
+
+print Credits:\s
+printv credits
+println
+
+print Health:\s
+printv health
+println
+
+print Session time:\s
+printv session_time
+println \sms
+
+println
+color 10
+println Thank you for using Cyber Mission Center!
+color 15
+exit
+
+# ==================================================
+# Functions
+# ==================================================
+
+label show_profile
+println
+color 13
+println ---------- AGENT PROFILE ----------
+color 15
+
+print Name:\s
+printsn name
+
+print Class:\s
+printsn agent_class
+
+print Age:\s
+printv age
+println
+
+array_get stored_power 0
+array_get stored_defense 1
+array_get stored_speed 2
+array_get stored_badge 4
+
+print Power:\s
+printv stored_power
+println
+
+print Defense:\s
+printv stored_defense
+println
+
+print Speed:\s
+printv stored_speed
+println
+
+print Badge ID:\s
+printv stored_badge
+println
+
+print Float rating:\s
+printfn rating
+
+# strcmp returns -1, 0, or 1.
+strcmp name_order name agent_class
+print Name/class lexical comparison:\s
+printv name_order
+println
+
+color 13
+println -----------------------------------
+color 15
+return
+
+label show_short_stats
+color 14
+println ---------- CURRENT STATS ----------
+color 15
+
+array_get current_wins 5
+array_get current_losses 6
+array_get current_credits 7
+array_get current_health 8
+
+print Wins:\s
+printv current_wins
+println
+
+print Losses:\s
+printv current_losses
+println
+
+print Credits:\s
+printv current_credits
+println
+
+print Health:\s
+printv current_health
+println
+
+color 14
+println -----------------------------------
+color 15
+return

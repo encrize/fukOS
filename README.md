@@ -1,8 +1,37 @@
 # fukOS
 
+![License](https://img.shields.io/github/license/encrize/fukOS)
+![Last commit](https://img.shields.io/github/last-commit/encrize/fukOS)
+![Architecture](https://img.shields.io/badge/arch-i686-blue)
+![Bootloader](https://img.shields.io/badge/boot-Limine%2FMultiboot2-lightgrey)
+
 fukOS is a hobby 32-bit i686 operating system written in freestanding C and assembly. It boots through Limine/Multiboot2, uses its own framebuffer console, storage, keyboard, audio, FAT layer, shell, text editor, and a Doom Generic port.
 
-The main hardware target is **Acer Aspire ES1-533** with Intel Pentium N4200 / Apollo Lake and a 1366×768 display. QEMU is useful for quick boot checks, but real Acer behavior is the priority.
+The main hardware target is **Acer Aspire ES1-533** with Intel Pentium N4200 / Apollo Lake and a 1366×768 display.
+
+## Contents
+
+- [Screenshots](#screenshots)
+- [Current feature set](#current-feature-set)
+- [Building on Arch Linux](#building-on-arch-linux)
+- [Typical hardware test flow](#typical-hardware-test-flow)
+- [Shell controls](#shell-controls)
+- [Some shell commands](#some-shell-commands)
+- [Text editor](#text-editor)
+- [Memory and heap](#memory-and-heap)
+- [External applications](#external-applications)
+- [DOOM integration](#doom-integration)
+- [Repository layout](#repository-layout)
+- [Current limitations](#current-limitations)
+- [Development roadmap](#development-roadmap)
+- [Third-party material](#third-party-material)
+
+## Screenshots
+
+| Shell | Clock app | Fastfetch |
+|---|---|---|
+| ![shell](https://github.com/user-attachments/assets/b9896c2b-f4c4-42cf-995b-aa1e6e3b08c6) | ![clock](https://github.com/user-attachments/assets/2dabb7e8-47d3-4e69-a4f6-37bbb8ced766) | ![fastfetch](https://github.com/user-attachments/assets/57ca773f-eabe-4a76-89a8-5b784ad6094a) |
+| `ls`/`tree` output on real Acer hardware | Full-screen flip clock | Live system status card (`ff`) |
 
 ## Current feature set
 
@@ -13,6 +42,7 @@ The main hardware target is **Acer Aspire ES1-533** with Intel Pentium N4200 / A
 - PS/2 scancode set 1 keyboard input via firmware USB Legacy Emulation.
 - CPUID/PIT-based TSC frequency detection for software key repeat.
 - Shell with editable command line, history, scrollback, and tab completion.
+- External `.fuk` applications loaded from `/apps` at runtime by the FUK1 VM.
 - Full-screen terminal `clock` app with large flip-clock-style hour/minute cards.
 - Configurable BMP startup splash loaded from `fuko.conf` after storage mount.
 - FAT16/FAT32 storage over ATA PIO or xHCI USB Mass Storage.
@@ -106,16 +136,15 @@ Recommended DOOM save test:
 | Page Up / Page Down | Scroll shell output one page |
 | Tab | Complete command, file, or directory name |
 
-## Important shell commands
+## Some shell commands
 
 ```text
 ff                 live system card with RAM/heap/disk/audio bars
 heaptest           test kernel heap alloc/free/calloc/realloc behavior
 irqinfo            show PIT interrupt ticks and COM1 status
 panic-test confirm deliberately trigger a breakpoint panic and register dump
-clock              full-screen flip clock; Q/Esc/Enter exits
 open <file>        open by type: text->edit, BMP->photo, WAV->play
-matrix             green digital-rain screensaver
+start calc         run /apps/calc.fuk without linking it into the kernel
 bgplay <file.wav>  start background WAV playback
 bgplay *.wav       queue all WAV files in current directory
 doom               start DOOM
@@ -149,6 +178,88 @@ Heap implementation:
 
 DOOM reserves a private 32 MiB arena from this kernel heap for each run and frees it on exit.
 
+## External applications
+
+fukOS loads `.fuk` applications directly from `/apps` on the FAT partition. They are not linked
+into `KERNEL.BIN`, so a new application can be copied to the USB drive without rebuilding the
+kernel:
+
+```text
+/apps/hello.fuk  ->  start hello
+/apps/tetris.fuk ->  start tetris
+```
+
+Every FUK1 source file starts with `FUK1`. Instructions are written one per line:
+
+```text
+FUK1
+set score 0
+input number Enter a number:
+mul result number 2
+print Twice that is:
+printv result
+println
+exit
+```
+
+Control flow uses labels and conditional jumps:
+
+```text
+set i 1
+label loop
+printv i
+println
+add i i 1
+if_le i 10 loop
+exit
+```
+
+Games use a non-blocking frame loop:
+
+```text
+FUK1
+clear
+set x 10
+set y 8
+label frame
+sleep 50
+key_poll key
+if_eq key 113 quit
+if_eq key 130 left
+if_eq key 131 right
+goto draw
+label left
+sub x x 1
+goto draw
+label right
+add x x 1
+label draw
+clear
+cursor x y
+print @
+goto frame
+label quit
+exit
+```
+
+The upgraded VM provides dynamic integer, float, and string variables; arithmetic and bit operations;
+typed comparisons with direct true/false branches; labels; `call`/`return`; a 4,096-element integer
+array; safe conversions and string helpers; random numbers; terminal
+queries/positioning/colors, blocking and non-blocking keyboard input, and bounded timing.
+Applications may use up to 512 KiB of source, 256 variables, 64 nested calls, and 100,000,000
+executed instructions per launch. VM state is allocated from the kernel heap instead of the shell
+stack, and labels are indexed once at startup for faster jumps in large programs.
+
+A complete 10×20 Tetris implementation is included at
+[`examples/fuk/tetris.fuk`](examples/fuk/tetris.fuk). It demonstrates seven tetrominoes, collision
+detection, rotation, line removal, scoring, rendering, arrays, random pieces, and a real-time
+keyboard loop. Copy it to `/apps/tetris.fuk` on the USB drive and run `start tetris`.
+
+Documentation:
+
+- [`docs/13-fuk-programming-tutorial.md`](docs/13-fuk-programming-tutorial.md) — step-by-step tutorial for writing applications;
+- [`docs/12-external-fuk-apps.md`](docs/12-external-fuk-apps.md) — complete instruction reference and VM implementation details.
+
 ## DOOM integration
 
 The `doom/` directory contains a Doom Generic-style port linked directly into the kernel. DOOM shares the kernel address space and is not a separate process.
@@ -180,6 +291,7 @@ limine.conf    Limine boot configuration
 - Single address space, ring 0 only, and no process isolation.
 - No paging, virtual memory, memory protection, or swap.
 - No scheduler, processes, threads, signals, or executable loader.
+- `.fuk` apps currently run inside a small interpreted VM; native ELF programs are not supported.
 - Keyboard, xHCI, and HDA are still serviced cooperatively; only the PIT uses an IRQ.
 - Storage support is limited to FAT16/FAT32 over ATA PIO or one xHCI USB Mass Storage device.
 - No journaling, permissions, users, networking, USB HID driver, or package manager.
@@ -188,19 +300,34 @@ limine.conf    Limine boot configuration
 - RTC time has no configured timezone, NTP synchronization, or century-register handling.
 - The kernel has no automated bare-metal regression suite; real-hardware checks remain manual.
 
-## Development ideas
+## Development roadmap
 
-1. Add paging with guard pages, a higher-half kernel, and a safer physical-page allocator.
-2. Introduce a preemptive scheduler, ring-3 processes, syscalls, and an ELF loader.
-3. Move PS/2, xHCI, and HDA toward IRQ-driven operation with synchronization primitives.
-4. Add a VFS layer, read-only ISO9660/ext2 support, and transactional FAT write recovery.
-5. Implement USB HID keyboards/mice without relying on firmware legacy emulation.
-6. Add an RTL8139 or Intel e1000 driver, IPv4, DHCP, DNS, ICMP, and a small TCP stack.
+### Near-term - architecture debt
+1. Move PS/2, xHCI, and HDA toward IRQ-driven operation with synchronization primitives.
+2. Create QEMU smoke tests for boot, heap, FAT, exceptions, screenshots, and repeated DOOM launches.
+
+### Mid-term - isolation and safety
+3. Add paging with guard pages, a higher-half kernel, and a safer physical-page allocator.
+4. Introduce a preemptive scheduler, ring-3 processes, syscalls, and an ELF loader.
+5. Add a VFS layer, read-only ISO9660/ext2 support, and transactional FAT write recovery.
+6. Implement USB HID keyboards/mice without relying on firmware legacy emulation.
+
+### Long-term - userspace and beyond
 7. Build a userspace terminal, file manager, system monitor, and settings application.
 8. Add PNG/JPEG decoding, scalable fonts, mouse input, and window compositing.
-9. Add ACPI table parsing for power, battery, thermal state, and reliable reboot/shutdown.
-10. Create QEMU smoke tests for boot, heap, FAT, exceptions, screenshots, and repeated DOOM launches.
+9. Add an RTL8139 or Intel e1000 driver, IPv4, DHCP, DNS, ICMP, and a small TCP stack.
+10. Add ACPI table parsing for power, battery, thermal state, and reliable reboot/shutdown.
 
 ## Third-party material
 
-> **Notice:** This operating system includes the shareware data file (`doom1.wad`) for demonstration purposes only. DOOM Shareware data is copyrighted by id Software / ZeniMax Media / Microsoft. This is a non-commercial, non-profit educational project. No copyright infringement intended. If you are the copyright holder and wish this file to be removed, please contact me: admin@encrize.vip
+This repository includes the shareware data file `doom1.wad` for demonstration purposes only.
+
+DOOM Shareware data is copyrighted by id Software / ZeniMax Media /
+Microsoft. It is not covered by this project's GPL-2.0 license and
+remains the property of its respective copyright holders.
+
+This is a non-commercial, non-profit educational project. No copyright
+infringement is intended.
+
+If you are the copyright holder and wish this file to be removed from
+the repository, please contact: admin@encrize.vip

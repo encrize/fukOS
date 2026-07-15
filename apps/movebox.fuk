@@ -1,0 +1,65 @@
+FUK1
+# Real-time terminal demo. Move @ with arrow keys; Q or Esc exits.
+clear
+set x 10
+set y 8
+color 11
+cursor x y
+print @
+
+label loop
+sleep 35
+key_poll key
+if_eq key 0 loop
+if_eq key 113 quit
+if_eq key 81 quit
+if_eq key 27 quit
+if_eq key 128 up
+if_eq key 129 down
+if_eq key 130 left
+if_eq key 131 right
+goto loop
+
+label erase
+cursor x y
+print \s
+exit
+
+label up
+if_le y 1 loop
+cursor x y
+print \s
+sub y y 1
+goto draw
+
+label down
+if_ge y 20 loop
+cursor x y
+print \s
+add y y 1
+goto draw
+
+label left
+if_le x 1 loop
+cursor x y
+print \s
+sub x x 1
+goto draw
+
+label right
+if_ge x 60 loop
+cursor x y
+print \s
+add x x 1
+
+label draw
+color 11
+cursor x y
+print @
+goto loop
+
+label quit
+clear
+color 15
+println movebox.fuk finished.
+exit

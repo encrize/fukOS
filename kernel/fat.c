@@ -995,6 +995,17 @@ static int path_parent(const char *path, char leaf[128]) {
     return 1;
 }
 
+int fat_open_path(const char *path, fat_file *file) {
+    if (!g_mounted || !path || !file) return 0;
+    fat_cwd_state saved;
+    char leaf[128];
+    cwd_save(&saved);
+    if (!path_parent(path, leaf)) { cwd_restore(&saved); return 0; }
+    int ok = fat_open(leaf, file);
+    cwd_restore(&saved);
+    return ok;
+}
+
 static int unlink_dirent(const char *name, int release_clusters) {
     uint32_t sslot, lfirst;
     if (!dir_find(name, &sslot, &lfirst)) return 0;

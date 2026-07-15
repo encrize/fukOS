@@ -21,6 +21,9 @@ char kbd_getchar(void);
 
 char kbd_poll(void);
 
+/* Calibrated TSC ticks per millisecond, available after kbd_init(). */
+uint64_t kbd_tsc_per_ms(void);
+
 void kbd_init(void);
 
 #endif
