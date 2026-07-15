@@ -121,7 +121,7 @@ Recommended DOOM save test:
 2. Save to a slot.
 3. Exit DOOM.
 4. Run `ls` and verify a file such as `doomsav0.dsg` exists.
-5. Reboot the Acer.
+5. Reboot.
 6. Start DOOM again and load the save from the menu.
 
 ## Shell controls
