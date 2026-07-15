@@ -124,7 +124,7 @@ pacman -Ql edk2-ovmf | grep OVMF_CODE
 
 QEMU is a build and boot sanity check. The Acer Aspire ES1-533 remains the primary hardware validation target.
 
-## Write the image to USB (1 method)
+## Write the image to USB (1 method) (RECOMMENDED)
 
 > **Warning:** the following command destroys data on the selected device. Confirm the device name with `lsblk` and use the whole device, not a partition.
 
@@ -138,6 +138,11 @@ sudo umount /dev/sdX
 sudo mkfs.vfat -F 32 -n "fukOS" /dev/sdX
 ```
 
+Then put those files on your USB drive
+
+(BOOTIA32.EFI, BOOTX64.EFI and limine-bios.sys from your limine-binary dir, other from OS dir)
+
+```text
 ├── EFI/
 │   └── BOOT/
 │       ├── BOOTIA32.EFI
@@ -149,6 +154,7 @@ sudo mkfs.vfat -F 32 -n "fukOS" /dev/sdX
 ├── kernel.bin
 ├── limine-bios.sys
 └── limine.conf
+```
 
 To update an existing compatible Limine boot partition without rewriting the full image, replace both files in the FAT root:
 
